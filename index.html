@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=no" />
+        <meta charset="utf-8">
+    
+        <link rel="stylesheet" href="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/style.min.css" type="text/css">
+        <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.min.js"></script>
+    
+        <style>
+            body {
+                margin: 10;
+            }
+            #forgeViewer {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                background-color: #F0F8FF;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Display a Derivative in Viewer</h1>
+        <form id="frm1" >
+            Access Token:<br>
+            <textarea id="access_token" rows="5" cols="100">Enter your Access Token here </textarea>
+            <br><br>
+            Source File URN (enccoded):<br>
+            <textarea id="source_file_urn" rows="2" cols="100">Enter the source file URN here </textarea>
+            <br><br>
+            <input type="button" onclick="DisplayViewer()" value="Submit"><br><br>
+        </form>
+        <div id="forgeViewer"></div>
+        <script>
+
+            var viewer;
+
+            var inputs = document.querySelectorAll('input');
+
+            function DisplayViewer() {
+
+                var options = {
+                    env: 'AutodeskProduction',
+                    api: 'derivativeV2',  // for models uploaded to EMEA change this option to 'derivativeV2_EU'
+                    getAccessToken: function(onTokenReady) {
+                        var x=document.getElementById("access_token")
+                        var token= x.value;
+                        var timeInSeconds = 3600; // Use value provided by Forge Authentication (OAuth) API
+                        onTokenReady(token, timeInSeconds);
+                    }
+                }
+
+                Autodesk.Viewing.Initializer(options, function() {
+
+                    var htmlDiv = document.getElementById('forgeViewer');
+                    viewer = new Autodesk.Viewing.GuiViewer3D(htmlDiv);
+                    var startedCode = viewer.start();
+                    if (startedCode > 0) {
+                        console.error('Failed to create a Viewer: WebGL not supported.');
+                        return;
+                    }
+
+                    console.log('Initialization complete, loading a model next...');
+
+                });
+
+                var x=document.getElementById("source_file_urn")
+                var documentId = 'urn:'+ x.value;
+                Autodesk.Viewing.Document.load(documentId, onDocumentLoadSuccess, onDocumentLoadFailure);
+            };
+
+            function onDocumentLoadSuccess(viewerDocument) {
+                var defaultModel = viewerDocument.getRoot().getDefaultGeometry();
+                viewer.loadDocumentNode(viewerDocument, defaultModel);
+            }
+
+            function onDocumentLoadFailure() {
+                console.error('Failed fetching Forge manifest');
+            }
+
+        </script>
+    
+    </body>
+</html>

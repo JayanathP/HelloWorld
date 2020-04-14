@@ -38,9 +38,19 @@
         <br>
         <br>
     </form>
-    <div id="forgeViewer"></div>
+    <div id="viewables_dropdown" style="display:none">
+        <br>
+        <br>
+        <label for="viewables">Choose a viewable:</label>
+        <select id="viewables" onchange="selectViewable()"></select>
+        <br>
+        <br>
+    </div>
+    <div id="forgeViewer" style="margin-left: 10px; margin-right: 10px;"></div>
     <script>
         var viewer;
+        var md_ViewerDocument;
+        var md_viewables;
 
         var inputs = document.querySelectorAll('input');
 
@@ -60,12 +70,17 @@
             Autodesk.Viewing.Initializer(options, function() {
 
                 var htmlDiv = document.getElementById('forgeViewer');
+                
+                
+
+
                 viewer = new Autodesk.Viewing.GuiViewer3D(htmlDiv);
                 var startedCode = viewer.start();
                 if (startedCode > 0) {
                     console.error('Failed to create a Viewer: WebGL not supported.');
                     return;
                 }
+
 
                 console.log('Initialization complete, loading a model next...');
 
@@ -74,11 +89,49 @@
             var x = document.getElementById("source_file_urn")
             var documentId = 'urn:' + x.value;
             Autodesk.Viewing.Document.load(documentId, onDocumentLoadSuccess, onDocumentLoadFailure);
+
+            
         };
 
+        function selectViewable() {
+            
+            var indexViewable = document.getElementById("viewables").selectedIndex;
+            // Load another viewable from selectedIndex of drop-down.
+            viewer.loadDocumentNode(md_ViewerDocument, md_viewables[indexViewable]);
+
+            console.log (test);
+
+        }
+
         function onDocumentLoadSuccess(viewerDocument) {
-            var defaultModel = viewerDocument.getRoot().getDefaultGeometry();
-            viewer.loadDocumentNode(viewerDocument, defaultModel);
+
+            var viewerapp = viewerDocument.getRoot();
+            
+            md_ViewerDocument=viewerDocument;
+            md_viewables = viewerapp.search({'type':'geometry'});
+
+            if (md_viewables.length === 0) {
+                console.error('Document contains no viewables.');
+                return;
+            }
+
+            // populate our simple drop down with the viewable name
+            var sel = document.getElementById('viewables');
+            for(var i = 0; i < md_viewables.length; i++) {
+                var opt = document.createElement('option');
+                opt.innerHTML = md_viewables[i].data.name;
+                opt.value =  md_viewables[i].data.name;
+
+                sel.appendChild(opt);
+            }
+
+            viewer.loadDocumentNode(viewerDocument, md_viewables[0]);
+
+            if (md_viewables.length > 1) {
+                var viewablesDIV= document.getElementById("viewables_dropdown");
+                viewablesDIV.style.display = "block";
+
+            }
         }
 
         function onDocumentLoadFailure() {

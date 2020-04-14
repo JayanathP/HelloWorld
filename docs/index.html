@@ -70,17 +70,14 @@
             Autodesk.Viewing.Initializer(options, function() {
 
                 var htmlDiv = document.getElementById('forgeViewer');
-                
-                
-
-
+   
                 viewer = new Autodesk.Viewing.GuiViewer3D(htmlDiv);
                 var startedCode = viewer.start();
+				
                 if (startedCode > 0) {
                     console.error('Failed to create a Viewer: WebGL not supported.');
                     return;
                 }
-
 
                 console.log('Initialization complete, loading a model next...');
 
@@ -98,9 +95,6 @@
             var indexViewable = document.getElementById("viewables").selectedIndex;
             // Load another viewable from selectedIndex of drop-down.
             viewer.loadDocumentNode(md_ViewerDocument, md_viewables[indexViewable]);
-
-            console.log (test);
-
         }
 
         function onDocumentLoadSuccess(viewerDocument) {
